@@ -1,0 +1,14 @@
+---
+# tasks file for ansible/roles/asterisk-start
+- name: Start Asterisk service
+  remote_user: root
+  ansible.builtin.systemd:
+    state: started
+    name: asterisk
+
+- name: Enable Asterisk service
+  remote_user: root
+  ansible.builtin.systemd:
+    enabled: true
+    name: asterisk
+

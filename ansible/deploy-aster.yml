@@ -1,0 +1,23 @@
+---
+# ansible/playbook.yml
+- hosts: aster
+  become: true
+  gather_facts: false
+  vars:
+    shell: /bin/bash
+    asterisk_version: 20-current
+    # if you need any of the modules that are not included by default, add these modules here like that: --enable chan_sip
+    asterisk_enable_modules: --enable res_ari --enable format_mp3 --enable core-sounds-en-wav --enable moh-opsound-wav --enable extra-sounds-en-wav
+    asterisk_odbc_driver_path: /usr/lib/x86_64-linux-gnu/odbc/libmaodbc.so
+    asterisk_src_dir: /usr/src/iasterisk/
+    odbc_src_url: https://dlm.mariadb.com/3907336/Connectors/odbc/connector-odbc-3.2.3/mariadb-connector-odbc-3.2.3-ubuntu-jammy-amd64.tar.gz
+    odbc_src_dir: /usr/src/iodbc/
+    odbc_dst_dir: /usr/lib/x86_64-linux-gnu/odbc/
+
+  roles:
+    - role: asterisk-prepare
+    - role: asterisk-install
+    - role: asterisk-install-odbc
+    - role: asterisk-configure
+    - role: asterisk-start
+    - role: asterisk-copy-config

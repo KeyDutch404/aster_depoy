@@ -1,0 +1,19 @@
+---
+# tasks file for ansible/roles/asterisk-copy-config
+
+- name: configure main files
+  ansible.builtin.template:
+    src: "{{ item }}"
+    dest: "/etc/asterisk/{{ item | basename }}"
+    owner: asterisk
+    group: asterisk
+    mode: 0640
+  loop: "{{ lookup('fileglob', playbook_dir + '/templates/' + aster_group_name + '/*.conf', wantlist=True) }}"
+
+
+- name: Module asterisk reload
+  shell: /usr/sbin/asterisk -rx "module reload"
+
+- name: Reload asterisk dialplan
+  shell: /usr/sbin/asterisk -rx "core reload"
+

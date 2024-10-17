@@ -1,0 +1,52 @@
+---
+# tasks file for ansible/roles/asterisk-install-odbc
+- name: Remove existing install source dir
+  file: "path={{ odbc_src_dir }} state=absent"
+
+- name: Create install source dir
+  file: "path={{ odbc_src_dir }} state=directory"
+
+- name: Create install dest dir
+  file: "path={{ odbc_dst_dir }} state=directory"
+
+- name: Check ODBC Installation
+  stat: "path={{ asterisk_odbc_driver_path }}"
+  register: odbc_driver
+
+- name: Download ODBC source using wget
+  command: "wget -O /tmp/mysql-connector-odbc.tar.gz {{ odbc_src_url }}"
+
+- name: Extract ODBC source
+  unarchive:
+    src: "/tmp/mysql-connector-odbc.tar.gz"
+    dest: "{{ odbc_src_dir }}"
+    remote_src: yes
+    extra_opts: ["--strip-components=1"]
+
+- name: Copy the driver to the ODBC folder
+  shell: "cp lib/mariadb/libm* /usr/lib/x86_64-linux-gnu/odbc
+  chdir={{ odbc_src_dir }}"
+  when: not odbc_driver.stat.exists
+
+- name: Make sure asterisk_odbc_driver_path is owned by root
+  file:
+    path: /usr/lib/x86_64-linux-gnu/odbc/
+    owner: root
+    recurse: yes
+    group: root
+    mode: 0775
+
+- name: copy file odbcinst.ini
+  ansible.builtin.template:
+    src: odbcinst.ini
+    dest: /etc/odbcinst.ini
+
+- name: copy file odbc.ini
+  ansible.builtin.template:
+    src: odbc.ini
+    dest: /etc/odbc.ini
+
+- name: create def ast db and def root pass
+  remote_user: root
+  shell: mysql -e 'ALTER USER "root"@"localhost" IDENTIFIED BY "pass"; flush privileges;  create database asterisk;'
+
